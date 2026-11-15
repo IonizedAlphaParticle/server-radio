@@ -61,6 +61,14 @@ public class ServerRadio implements ModInitializer {
                                     .then(Commands.argument("song", StringArgumentType.greedyString())
                                             .executes(context -> {
                                                 String song = StringArgumentType.getString(context, "song");
+
+                                                if (!Files.exists(SONGS_DIR.resolve(song))){
+                                                    context.getSource().sendFailure(Component.literal("Song not found: " + song));
+                                                    return 0;
+                                                }
+
+
+
                                                 PLAYLIST.add(song);
                                                 context.getSource().sendSuccess(
                                                         () -> Component.literal("Added: " + song), false);
