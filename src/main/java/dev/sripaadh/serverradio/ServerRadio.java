@@ -3,22 +3,35 @@ package dev.sripaadh.serverradio;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
 public class ServerRadio implements ModInitializer {
     public static final String MOD_ID = "serverradio";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     public static final Playlist PLAYLIST = new Playlist();
+    public static final Path SONGS_DIR = FabricLoader.getInstance().getConfigDir().resolve(MOD_ID);
 
     @Override
     public void onInitialize() {
-        PLAYLIST.add("song1.wav");
-        PLAYLIST.add("song2.wav");
+        try {
+            Files.createDirectories(SONGS_DIR);
+            LOGGER.info("Songs folder: {}", SONGS_DIR);
+        } catch (IOException e) {
+            LOGGER.error("Couldn't create songs folder", e);
+        }
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             dispatcher.register(
@@ -54,6 +67,28 @@ public class ServerRadio implements ModInitializer {
                                                 return 1;
 
                                             })))
+
+                            .then(Commands.literal("list")
+                                    .executes(context -> {
+                                        List<String> names = new ArrayList<>();
+
+                                        try (DirectoryStream<Path> files = Files.newDirectoryStream(SONGS_DIR, "*.wav")) {
+                                            for (Path file : files) {
+                                                names.add(file.getFileName().toString());
+                                            }
+                                        } catch (IOException e) {
+                                            context.getSource().sendFailure(Component.literal("Couldn't read songs in the folder"));
+                                            return 0;
+                                        }
+
+                                        if (names.isEmpty()) {
+                                            context.getSource().sendFailure(Component.literal("No songs found"));
+                                            return 0;
+                                        } else {
+                                            context.getSource().sendSuccess(() -> Component.literal("Songs: " + String.join(", ", names)), false);
+                                            return 1;
+                                        }
+                                    }))
             );
         });
     }
