@@ -62,11 +62,10 @@ public class ServerRadio implements ModInitializer {
                                             .executes(context -> {
                                                 String song = StringArgumentType.getString(context, "song");
 
-                                                if (!Files.exists(SONGS_DIR.resolve(song))){
+                                                if (!Files.exists(SONGS_DIR.resolve(song))) {
                                                     context.getSource().sendFailure(Component.literal("Song not found: " + song));
                                                     return 0;
                                                 }
-
 
 
                                                 PLAYLIST.add(song);
@@ -95,6 +94,28 @@ public class ServerRadio implements ModInitializer {
                                         } else {
                                             context.getSource().sendSuccess(() -> Component.literal("Songs: " + String.join(", ", names)), false);
                                             return 1;
+                                        }
+                                    }))
+
+                            .then(Commands.literal("play")
+                                    .executes(context -> {
+                                        String song = PLAYLIST.next();
+
+                                        if (song == null) {
+                                            context.getSource().sendFailure(Component.literal("The playlist is empty!"));
+                                            return 0;
+                                        }
+
+                                        try {
+                                            short[] samples = AudioLoader.load(SONGS_DIR.resolve(song));
+                                            RadioVoicechatPlugin.play(samples, context.getSource());
+                                            context.getSource().sendSuccess(
+                                                    () -> Component.literal("Now playing: " + song), false);
+                                            return 1;
+                                        } catch (Exception e) {
+                                            LOGGER.error("Failed to play " + song, e);
+                                            context.getSource().sendFailure(Component.literal("Couldn't play " + song));
+                                            return 0;
                                         }
                                     }))
             );
