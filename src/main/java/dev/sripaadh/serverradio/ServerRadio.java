@@ -39,19 +39,6 @@ public class ServerRadio implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             dispatcher.register(
                     Commands.literal("radio")
-                            .then(Commands.literal("next")
-                                    .executes(context -> {
-                                        String song = PLAYLIST.next();
-
-                                        if (song == null) {
-                                            context.getSource().sendFailure(Component.literal("No more songs in the playlist!"));
-                                            return 0;
-                                        }
-
-                                        context.getSource().sendSuccess(
-                                                () -> Component.literal("Next: " + song), false);
-                                        return 1;
-                                    }))
                             .then(Commands.literal("size")
                                     .executes(context -> {
                                         context.getSource().sendSuccess(
@@ -65,7 +52,9 @@ public class ServerRadio implements ModInitializer {
                                             .executes(context -> {
                                                 String song = StringArgumentType.getString(context, "song");
 
-                                                if (!Files.exists(SONGS_DIR.resolve(song))) {
+                                                Path path = SONGS_DIR.resolve(song).normalize();
+
+                                                if (!path.startsWith(SONGS_DIR.normalize()) || !Files.exists(path)) {
                                                     context.getSource().sendFailure(Component.literal("Song not found: " + song));
                                                     return 0;
                                                 }

@@ -4,11 +4,10 @@ import de.maxhenkel.voicechat.api.*;
 import de.maxhenkel.voicechat.api.audiochannel.AudioPlayer;
 import de.maxhenkel.voicechat.api.audiochannel.StaticAudioChannel;
 import de.maxhenkel.voicechat.api.events.EventRegistration;
+import de.maxhenkel.voicechat.api.events.PlayerConnectedEvent;
 import de.maxhenkel.voicechat.api.events.VoicechatServerStartedEvent;
 import de.maxhenkel.voicechat.api.opus.OpusEncoderMode;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
@@ -20,7 +19,9 @@ public class RadioVoicechatPlugin implements VoicechatPlugin {
     // Your "remote control" for Voice Chat. null until its server starts.
     public static VoicechatServerApi API;
 
-    public static AudioPlayer current;
+    private static AudioPlayer current;
+
+    private static StaticAudioChannel currentChannel;
 
     @Override
     public String getPluginId() {
@@ -36,6 +37,7 @@ public class RadioVoicechatPlugin implements VoicechatPlugin {
     public void registerEvents(EventRegistration registration) {
         // "When Voice Chat's server starts, call my onServerStarted method"
         registration.registerEvent(VoicechatServerStartedEvent.class, this::onServerStarted);
+        registration.registerEvent(PlayerConnectedEvent.class, this::onPlayerConnected);
     }
 
     private void onServerStarted(VoicechatServerStartedEvent event) {
@@ -47,6 +49,12 @@ public class RadioVoicechatPlugin implements VoicechatPlugin {
                 .build();
         API.registerVolumeCategory(category);
         ServerRadio.LOGGER.info("Connected to Simple Voice Chat!");
+    }
+
+    private void onPlayerConnected(PlayerConnectedEvent event){
+        if (currentChannel != null) {
+            currentChannel.addTarget(event.getConnection());
+        }
     }
 
     public static boolean play(short[] samples, MinecraftServer server) {
@@ -72,6 +80,8 @@ public class RadioVoicechatPlugin implements VoicechatPlugin {
             channel.addTarget(c);
         }
 
+        currentChannel = channel;
+
         AudioPlayer player = API.createAudioPlayer(channel, API.createEncoder(OpusEncoderMode.AUDIO), samples);
 
         // CALLBACK: Voice Chat runs this when the song stops
@@ -90,7 +100,8 @@ public class RadioVoicechatPlugin implements VoicechatPlugin {
     public static boolean stop() {
         AudioPlayer old = current;
         if (old == null || !old.isPlaying()) return false;
-        current = null;        // clear FIRST, so the callback knows this was a manual stop
+        current = null;
+        currentChannel = null;
         old.stopPlaying();
         return true;
     }
