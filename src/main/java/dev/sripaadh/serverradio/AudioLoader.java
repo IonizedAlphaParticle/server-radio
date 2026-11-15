@@ -1,11 +1,16 @@
 package dev.sripaadh.serverradio;
 
+import de.maxhenkel.voicechat.api.mp3.Mp3Decoder;
+
 import javax.sound.sampled.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class AudioLoader {
 
-    public static short[] load(Path file) throws Exception {
+    public static short[] loadWav(Path file) throws Exception {
         try (AudioInputStream source = AudioSystem.getAudioInputStream(file.toFile())) {
             AudioFormat in = source.getFormat();
             int channels = in.getChannels();
@@ -47,5 +52,41 @@ public class AudioLoader {
             out[i] = (short) Math.round(input[i0] * (1 - t) + input[i1] * t);
         }
         return out;
+    }
+
+    // Entry point: pick a decoder based on the file extension
+    public static short[] load(Path file) throws Exception {
+        String name = file.getFileName().toString().toLowerCase();
+        if (name.endsWith(".mp3")) {
+            return loadMp3(file);
+        }
+        return loadWav(file);
+    }
+
+    private static short[] loadMp3(Path file) throws Exception {
+        try (InputStream in = Files.newInputStream(file)) {
+            Mp3Decoder decoder = RadioVoicechatPlugin.API.createMp3Decoder(in);
+            if (decoder == null) {
+                throw new IOException("MP3 decoder not available");
+            }
+            short[] pcm = decoder.decode();
+            AudioFormat format = decoder.getAudioFormat();
+            short[] mono = toMono(pcm, format.getChannels());
+            return resample(mono, format.getSampleRate(), 48000);
+        }
+    }
+
+    // Average the channels together. Stereo samples come interleaved: L, R, L, R...
+    private static short[] toMono(short[] interleaved, int channels) {
+        if (channels == 1) return interleaved;
+        short[] mono = new short[interleaved.length / channels];
+        for (int f = 0; f < mono.length; f++) {
+            int sum = 0;
+            for (int c = 0; c < channels; c++) {
+                sum += interleaved[f * channels + c];
+            }
+            mono[f] = (short) (sum / channels);
+        }
+        return mono;
     }
 }
