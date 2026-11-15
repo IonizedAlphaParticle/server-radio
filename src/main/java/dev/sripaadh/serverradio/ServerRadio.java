@@ -21,7 +21,13 @@ public class ServerRadio implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 
-		LOGGER.info("Hello Fabric world!");
+		Playlist playlist = new Playlist();
+		playlist.add("song1.wav");
+		playlist.add("song2.wav");
+		LOGGER.info("Playlist has {} songs", playlist.size());
+		LOGGER.info(playlist.next());
+		LOGGER.info(playlist.next());
+		LOGGER.info(playlist.next());
 	}
 
 	public static Identifier id(String path) {
