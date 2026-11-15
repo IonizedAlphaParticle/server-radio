@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "serverradio",
+	"version": "${version}",
+	"name": "Server Radio",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "MIT",
+	"icon": "assets/serverradio/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"dev.sripaadh.serverradio.ServerRadio"
+		],
+		"client": [
+			"dev.sripaadh.serverradio.client.ServerRadioClient"
+		]
+	},
+	"mixins": [
+		"serverradio.mixins.json",
+		{
+			"config": "serverradio.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.20.1",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
