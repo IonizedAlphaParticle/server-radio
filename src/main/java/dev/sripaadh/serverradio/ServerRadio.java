@@ -1,5 +1,6 @@
 package dev.sripaadh.serverradio;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.Commands;
@@ -26,7 +27,7 @@ public class ServerRadio implements ModInitializer {
                                     .executes(context -> {
                                         String song = PLAYLIST.next();
 
-                                        if (song == null){
+                                        if (song == null) {
                                             context.getSource().sendFailure(Component.literal("No more songs in the playlist!"));
                                             return 0;
                                         }
@@ -42,6 +43,17 @@ public class ServerRadio implements ModInitializer {
                                         return 1;
 
                                     }))
+
+                            .then(Commands.literal("add")
+                                    .then(Commands.argument("song", StringArgumentType.greedyString())
+                                            .executes(context -> {
+                                                String song = StringArgumentType.getString(context, "song");
+                                                PLAYLIST.add(song);
+                                                context.getSource().sendSuccess(
+                                                        () -> Component.literal("Added: " + song), false);
+                                                return 1;
+
+                                            })))
             );
         });
     }
