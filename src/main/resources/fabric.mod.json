@@ -20,6 +20,9 @@
 		],
 		"client": [
 			"dev.sripaadh.serverradio.client.ServerRadioClient"
+		],
+		"voicechat": [
+			"dev.sripaadh.serverradio.RadioVoicechatPlugin"
 		]
 	},
 	"mixins": [
