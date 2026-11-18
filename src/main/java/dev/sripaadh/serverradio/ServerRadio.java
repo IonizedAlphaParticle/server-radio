@@ -106,6 +106,17 @@ public class ServerRadio implements ModInitializer {
 
                             .then(Commands.literal("skip")
                                     .executes(context -> playNext(context.getSource().getServer()) ? 1 : 0))
+
+
+                            .then(Commands.literal("loop")
+                                    .executes(context -> {
+                                        boolean on = PLAYLIST.toggleLoop();
+                                        broadcast(context.getSource().getServer(), "Loop: " + (on ? "on" : "off"));
+                                        return 1;
+                                    }))
+
+
+
             );
         });
     }

@@ -5,6 +5,8 @@ import java.util.List;
 
 public class Playlist {
     private final List<String> songs = new ArrayList<>();
+    private int index = 0;
+    private boolean loop = false;
 
     public void add(String song){
         songs.add(song);
@@ -14,13 +16,29 @@ public class Playlist {
         return songs.size();
     }
 
+    public boolean toggleLoop(){
+        loop = !loop;
+        return loop;
+    }
+
     public String next(){
         if (songs.isEmpty()){
             return null;
         }
-        else {
-            return songs.remove(0);
+
+        if (index >= songs.size()){
+            if (loop){
+              index = 0;
+            }
+            else{
+                index = 0;
+                return null;
+            }
         }
+
+        String song = songs.get(index);
+        index++;
+        return song;
     }
 
 }
