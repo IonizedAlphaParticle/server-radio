@@ -117,7 +117,15 @@ public class ServerRadio implements ModInitializer {
                                         return 1;
                                     }))
 
-
+                            .then(Commands.literal("shuffle")
+                                    .executes(context -> {
+                                        boolean on = PLAYLIST.toggleShuffle();
+                                        broadcast(context.getSource().getServer(), "Playlist Shuffle: " + (on ? "on" : "off"));
+                                        if (on){
+                                            PLAYLIST.shuffleSongs();
+                                        }
+                                        return 1;
+                                    }))
 
             );
         });

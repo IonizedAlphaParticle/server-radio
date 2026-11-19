@@ -1,12 +1,14 @@
 package dev.sripaadh.serverradio;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Playlist {
     private final List<String> songs = new ArrayList<>();
     private int index = 0;
     private boolean loop = false;
+    private boolean shuffle = false;
 
     public void add(String song){
         songs.add(song);
@@ -39,6 +41,16 @@ public class Playlist {
         String song = songs.get(index);
         index++;
         return song;
+    }
+
+    public void shuffleSongs(){
+        Collections.shuffle(songs);
+        index = 0;
+    }
+
+    public boolean toggleShuffle(){
+        shuffle = !shuffle;
+        return shuffle;
     }
 
 }
