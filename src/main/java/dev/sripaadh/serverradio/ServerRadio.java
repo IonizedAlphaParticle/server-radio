@@ -91,6 +91,8 @@ public class ServerRadio implements ModInitializer {
 
                             .then(Commands.literal("play")
                                     .executes(context -> playNext(context.getSource().getServer()) ? 1 : 0))
+                            
+
 
                             .then(Commands.literal("stop")
                                     .executes(context -> {
@@ -124,7 +126,13 @@ public class ServerRadio implements ModInitializer {
     public static boolean playNext(MinecraftServer server) {
         String song = PLAYLIST.next();
         if (song == null) {
-            broadcast(server, "Queue is empty, use /radio add <song>");
+            if (PLAYLIST.size() == 0){
+                broadcast(server, "Queue is empty, use /radio add <song>");
+
+            } else {
+                broadcast(server,"Playlist finished");
+            }
+
             return false;
         }
 
