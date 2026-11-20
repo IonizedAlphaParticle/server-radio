@@ -27,6 +27,21 @@ public class ServerRadio implements ModInitializer {
     public static final Playlist PLAYLIST = new Playlist();
     public static final Path SONGS_DIR = FabricLoader.getInstance().getConfigDir().resolve(MOD_ID);
 
+    public static String findSong(String input) {
+        try (DirectoryStream<Path> files = Files.newDirectoryStream(SONGS_DIR, "*.{wav,mp3}")) {
+            for (Path file : files) {
+                String fileName = file.getFileName().toString();
+                String name = fileName.substring(0, fileName.lastIndexOf('.'));
+                if (input.equalsIgnoreCase(fileName) || input.equalsIgnoreCase(name)) {
+                    return fileName;
+                }
+            }
+        } catch (IOException e) {
+            return null;
+        }
+        return null;
+    }
+
     @Override
     public void onInitialize() {
         try {
@@ -50,7 +65,12 @@ public class ServerRadio implements ModInitializer {
                             .then(Commands.literal("add")
                                     .then(Commands.argument("song", StringArgumentType.greedyString())
                                             .executes(context -> {
-                                                String song = StringArgumentType.getString(context, "song");
+                                                String song = findSong(StringArgumentType.getString(context, "song"));
+
+                                                if (song == null){
+                                                    context.getSource().sendFailure(Component.literal("Song not found"));
+                                                    return 0;
+                                                }
 
                                                 Path path = SONGS_DIR.resolve(song).normalize();
 
@@ -91,7 +111,6 @@ public class ServerRadio implements ModInitializer {
 
                             .then(Commands.literal("play")
                                     .executes(context -> playNext(context.getSource().getServer()) ? 1 : 0))
-                            
 
 
                             .then(Commands.literal("stop")
@@ -121,7 +140,7 @@ public class ServerRadio implements ModInitializer {
                                     .executes(context -> {
                                         boolean on = PLAYLIST.toggleShuffle();
                                         broadcast(context.getSource().getServer(), "Playlist Shuffle: " + (on ? "on" : "off"));
-                                        if (on){
+                                        if (on) {
                                             PLAYLIST.shuffleSongs();
                                         }
                                         return 1;
@@ -134,11 +153,11 @@ public class ServerRadio implements ModInitializer {
     public static boolean playNext(MinecraftServer server) {
         String song = PLAYLIST.next();
         if (song == null) {
-            if (PLAYLIST.size() == 0){
+            if (PLAYLIST.size() == 0) {
                 broadcast(server, "Queue is empty, use /radio add <song>");
 
             } else {
-                broadcast(server,"Playlist finished");
+                broadcast(server, "Playlist finished");
             }
 
             return false;
