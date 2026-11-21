@@ -150,6 +150,34 @@ public class ServerRadio implements ModInitializer {
                                         return 1;
                                     }))
 
+                            .then(Commands.literal("addall")
+                                    .executes(context -> {
+                                        int count = 0;
+
+                                        try (DirectoryStream<Path> files = Files.newDirectoryStream(SONGS_DIR, "*.{wav,mp3}")) {
+                                            for (Path file : files) {
+                                                String fileName = file.getFileName().toString();
+                                                if (!PLAYLIST.contains(fileName)) {
+                                                    PLAYLIST.add(fileName);
+                                                    count++;
+                                                }
+                                            }
+                                        } catch (IOException e) {
+                                            context.getSource().sendFailure(Component.literal("Couldn't read the songs folder"));
+                                            return 0;
+                                        }
+
+                                        if (count == 0) {
+                                            context.getSource().sendFailure(Component.literal("No new songs to add"));
+                                            return 0;
+                                        }
+
+                                        int added = count;
+                                        context.getSource().sendSuccess(
+                                                () -> Component.literal("Added " + added + " songs"), false);
+                                        return 1;
+                                    }))
+
             );
         });
     }

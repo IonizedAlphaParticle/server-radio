@@ -61,4 +61,8 @@ public class Playlist {
         index = 0;
     }
 
+    public boolean contains(String song) {
+        return original.contains(song);
+    }
+
 }
