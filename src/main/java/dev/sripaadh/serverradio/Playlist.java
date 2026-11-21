@@ -6,12 +6,14 @@ import java.util.List;
 
 public class Playlist {
     private final List<String> songs = new ArrayList<>();
+    private final List<String> original = new ArrayList<>();
     private int index = 0;
     private boolean loop = false;
     private boolean shuffle = false;
 
     public void add(String song){
         songs.add(song);
+        original.add(song);
     }
 
     public int size(){
@@ -51,6 +53,12 @@ public class Playlist {
     public boolean toggleShuffle(){
         shuffle = !shuffle;
         return shuffle;
+    }
+
+    public void restoreOrder(){
+        songs.clear();
+        songs.addAll(original);
+        index = 0;
     }
 
 }

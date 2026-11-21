@@ -143,6 +143,10 @@ public class ServerRadio implements ModInitializer {
                                         if (on) {
                                             PLAYLIST.shuffleSongs();
                                         }
+
+                                        if (!on){
+                                            PLAYLIST.restoreOrder();
+                                        }
                                         return 1;
                                     }))
 
